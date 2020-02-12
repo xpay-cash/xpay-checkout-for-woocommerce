@@ -149,12 +149,11 @@ if ( ! class_exists( 'WC_Xpay' ) ) :
         WC_Xpay::get_instance();
         $instance = WC_Xpay_Gateway::get_instance();
         $phpinput = file_get_contents("php://input");
-        $headers = getallheaders();
-        if (isset($_GET['ipn-xpay'])) {
-            WC_Xpay_Gateway::debug("Redirect\n\n".print_r($headers, true)."\n\nGET: ".print_r($_GET, true)."\n\nPOST:".print_r($_POST, true)."\n\nPHPINPUT:".$phpinput);
+        if ( isset( $_GET['ipn-xpay'] ) ) {
+            WC_Xpay_Gateway::debug( "IPN: " . $phpinput );
             $input = json_decode($phpinput, true);
-            if (isset($input['status']) && (int)$_GET['ipn-xpay'] > 0) {
-                $instance->checkIpn((int)$_GET['ipn-xpay']);
+            if ( isset( $input['status'] ) && (int)$_GET['ipn-xpay'] > 0 ) {
+                $instance->checkIpn( (int)$_GET['ipn-xpay'] );
             }
         }
     }
