@@ -119,11 +119,6 @@ if ( ! class_exists( 'WC_Xpay' ) ) :
     }
 
     add_action( 'plugins_loaded', array( 'WC_Xpay', 'get_instance' ), 0 );
-    function xpay_process_product() {
-        $instance = WC_Xpay_Gateway::get_instance();
-        //$instance->process_installment_product();
-    }
-    add_action( 'woocommerce_after_add_to_cart_button', 'xpay_process_product' );
     function xpay_lv_metabox_cb() {
         $woocommerce = WC_Xpay::woocommerce_instance();
         $woocommerce->payment_gateways();
@@ -135,10 +130,10 @@ if ( ! class_exists( 'WC_Xpay' ) ) :
     add_action( 'add_meta_boxes', 'xpay_lv_metabox' );
     add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'xpay_lv_add_action_links' );
     function xpay_lv_add_action_links( $links ) {
-         $mylinks = array(
-        '<a style="font-weight: bold;color: red" href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=xpay-gateway' ) . '">'.__('Setting', 'woocommerce-xpay').'</a>'
-             );
-            return array_merge( $links, $mylinks );
+        $mylinks = array(
+            '<a style="font-weight: bold;color: red" href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=xpay-gateway' ) . '">'.__('Setting', 'woocommerce-xpay').'</a>'
+        );
+        return array_merge( $links, $mylinks );
     }
     function xpay_lv_load_all() {
         WC_Xpay::get_instance();

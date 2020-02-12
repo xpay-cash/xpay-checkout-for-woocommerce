@@ -128,19 +128,28 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
                 echo __( 'Xpay is not available.', 'woocommerce-xpay' );
                 return;
             }
-            $total = $this->get_convertion_rate($this->currency_iso, $this->setting['CURRENCY']) * $ordertotal;
+            $total = $this->get_convertion_rate(
+                $this->currency_iso,
+                $this->setting['CURRENCY']
+            ) * $ordertotal;
             self::debug('Xpay total: '.self::pL($total, true));
             self::debug('Xpay CURRENCY: '.self::pL($this->setting['CURRENCY'], true));
             $currencies = $api->getCurrencies($this->setting['CURRENCY'], $total);
             self::debug('Xpay currencies: '.self::pL($currencies, true));
-            if (!$currencies) {
-                echo __( 'The current store currency or amount cannot be processed by Xpay.', 'woocommerce-xpay' );
+            if ( !$currencies ) {
+                echo __( 'Xpay no puede procesar la moneda o el monto de la tienda actual.', 'woocommerce-xpay' );
                 return;
             }
-            echo __( 'Select one currency:', 'woocommerce-xpay' ).'<br /><ul>';
-            foreach($currencies as $cur) {
-                echo '<li><input type="radio" name="xpay-currency" value="'.$cur['currency']['code'].'-'.$cur['exchange'].'" /> - '
-                        .$cur['currency']['name'].': '.$cur['amount'].' '.$cur['currency']['symbol'].'</li>';
+            echo __( 'Seleccione una moneda:', 'woocommerce-xpay' ).'<br /><ul>';
+            $first = true;
+            foreach ( $currencies as $cur ) {
+                echo '<li>
+                        <input type="radio" '.($first?'checked':'').'
+                                name="xpay-currency"
+                                value="'.$cur['currency']['code'].'-'.$cur['exchange'].'"
+                        /> - <b>'.$cur['currency']['name'].'</b>: '.$cur['amount'].' '.$cur['currency']['symbol'].'
+                </li>';
+                $first = false;
             }
             echo '</ul>';
         }
@@ -246,8 +255,9 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
                     }
                 }
                 $headers = array(
-                        'Connection:keep-alive',
-                        'User-Agent:Mozilla/5.0 (Windows NT 6.3) AppleWebKit/53 (KHTML, like Gecko) Chrome/37 Safari/537.36');
+                    'Connection:keep-alive',
+                    'User-Agent:Mozilla/5.0 (Windows NT 6.3) AppleWebKit/53 (KHTML, like Gecko) Chrome/37 Safari/537.36'
+                );
 
                 $ch = curl_init('https://s3.amazonaws.com/dolartoday/data.json');
                 curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -256,11 +266,8 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 $api_json = utf8_encode(curl_exec($ch));
-                echo "AAAAA--".$api_json."---BBBB";
                 curl_close($ch);
                 $api_arr = json_decode($api_json, true);
-                print_r($api_json);
-                print_r($api_arr);
                 foreach ($api_arr as $ac => $fields) {
                     if ($ac == $currency_org) {
                         $this->convertion_rate[$currency_org][$currency_dst] = array();
@@ -359,12 +366,28 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
          */
         public function is_available() {
             $available = false;
-            if ( $this->get_xpay_data( ) ) {
-                // Test if is valid for use.
-                $available = ( 'yes' == $this->settings['enabled'] ) &&
-                        ! empty( self::$client_id ) &&
-                        ! empty( self::$client_secret ) &&
-                        $this->using_supported_currency();
+            $available = ( 'yes' == $this->settings['enabled'] ) &&
+                    ! empty( self::$client_id ) &&
+                    ! empty( self::$client_secret ) &&
+                    $this->using_supported_currency();
+            if ( $available ) {
+                $api = new XpayLib(
+                    self::get_client_id(),
+                    self::get_client_secret()
+                );
+                if ( !$api->isApiKeyValid() ) {
+                    $available = false;
+                } else {
+                    $ordertotal = (float)wp_kses_data( WC()->cart->total );
+                    $total = $this->get_convertion_rate(
+                        $this->currency_iso,
+                        $this->setting['CURRENCY']
+                    ) * $ordertotal;
+                    $currencies = $api->getCurrencies($this->setting['CURRENCY'], $total);
+                    if ( !$currencies || count( $currencies ) < 1 ) {
+                        $available = false;
+                    }
+                }
             }
             return $available;
         } 
@@ -387,18 +410,6 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
             }
         }
         /**
-         * Check response.
-         *
-         * @param  object $order Order data.
-         *
-         * @return bool.
-         */
-        public function check_response ( $order, $show_echo = true) {
-            $paying = false;
-            $order_id = method_exists( $order, 'get_id' )?$order->get_id():$order->id;
-            return true;
-        }
-        /**
          * Void order on Xpay
          *
          * @param int $order_id Order ID..
@@ -410,62 +421,6 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
         public function void_order( $order_id ) {
             //No existe en Xpay
         }
-        private function getBillingAddress($order) {
-            $address_xpay = new stdClass;
-            $address_xpay->name = new stdClass;
-            $address_xpay->address = new stdClass;
-            $address_xpay->name->name = $order->get_billing_first_name();
-            $address_xpay->name->last = $order->get_billing_last_name();
-            $address_xpay->address->city = $order->get_billing_city();
-            $address_xpay->address->address = $order->get_billing_address_1();
-            $address_xpay->address->interior = $order->get_billing_address_2();
-            $address_xpay->address->state = $order->get_billing_state();
-            $address_xpay->address->zipcode = $order->get_billing_postcode();
-            $address_xpay->address->country = $order->get_billing_country();
-            $address_xpay->phone = $order->get_billing_phone();
-            return $address_xpay;
-        }
-        private function getShippingAddress($order) {
-            $address_xpay = new stdClass;
-            $address_xpay->name = new stdClass;
-            $address_xpay->address = new stdClass;
-            $address_xpay->name->name = $order->get_shipping_first_name();
-            $address_xpay->name->last = $order->get_shipping_last_name();
-            $address_xpay->address->city = $order->get_shipping_city();
-            $address_xpay->address->address = $order->get_shipping_address_1();
-            $address_xpay->address->interior = $order->get_shipping_address_2();
-            $address_xpay->address->state = $order->get_shipping_state();
-            $address_xpay->address->zipcode = $order->get_shipping_postcode();
-            $address_xpay->address->country = $order->get_shipping_country();
-            $address_xpay->phone = $order->get_billing_phone();
-            return $address_xpay;
-        }
-        static private function wp_is_mobile() {
-            if ( function_exists('wp_is_mobile') ) {
-                return wp_is_mobile();
-            }
-            if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
-                $is_mobile = false;
-            } elseif ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Mobile' ) !== false // many mobile devices (all iPhone, iPad, etc.)
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'Android' ) !== false
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'Silk/' ) !== false
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'Kindle' ) !== false
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'BlackBerry' ) !== false
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'Opera Mini' ) !== false
-                || strpos( $_SERVER['HTTP_USER_AGENT'], 'Opera Mobi' ) !== false ) {
-                    $is_mobile = true;
-            } else {
-                $is_mobile = false;
-            }
-            /**
-             * Filters whether the request should be treated as coming from a mobile device or not.
-             *
-             * @since 4.9.0
-             *
-             * @param bool $is_mobile Whether the request is from a mobile device or not.
-             */
-            return apply_filters( 'wp_is_mobile', $is_mobile );
-        }
         /**
          * Generate the form.
          *
@@ -475,9 +430,6 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
          */
         public function generate_form( $order_id ) {
             $order = new WC_Order( $order_id );
-            if ( ! $this->check_response ( $order ) ) {
-                return '';
-            }
             if (defined('PHP_SESSION_NONE') && session_id() == PHP_SESSION_NONE || session_id() == '') {
                 session_start();
             }
@@ -769,24 +721,12 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
                 dbDelta( $sql );
             }
         }
-        static public function stdclass_to_array( $object ) {
-            if ( is_object( $object ) ) {
-                $object = get_object_vars( $object );
-            }
-            if( is_array( $object ) ) {
-                return array_map( array( 'WC_Xpay_Gateway', 'stdclass_to_array' ), $object ); // recursive
-            } else {
-                return $object;
-            }
-        }
-
         function woocommerce_xpay_metabox() {
             global $theorder;
             $order_id = method_exists( $theorder, 'get_id' )?$theorder->get_id():$theorder->id;
-            $this->check_response ( $theorder, false );
             $status = self::get_metadata( $order_id, 'id_transaction' );
             if ( ! $status || empty( $status ) ) {
-                echo __( 'This order was not processed by Xpay.', 'woocommerce-xpay' );
+                echo __( 'Este pedido no fue procesado por Xpay.', 'woocommerce-xpay' );
                 return;
             }
             
@@ -823,42 +763,41 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
             if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
                 return admin_url( 'admin.php?page=wc-settings&tab=checkout&section=WC_Xpay_Gateway' );
             }
-
             return admin_url( 'admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_Xpay_Gateway' );
         }
 
         /**
-            * Error de client_id vacio
+            * Error de email vacio
             *
             * @return string Error.
             */
         public function client_id_missing_message() {
-            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Please input a valid Public Key. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
+            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Ingresa un e-mail valido. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
         }
 
 
         /**
-            * Error de client_secret vacio
-            *
-            * @return string Error.
-            */
+        * Error de clave vacia
+        *
+        * @return string Error.
+        */
         public function client_secret_missing_message() {
-            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Please input a Private Key. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
+            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Ingresa una clave valida. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
         }
 
         /**
-            * Error cuando client_id o client_secret son invalidos.
-            *
-            * @return string Error.
-            */
+        * Error cuando credenciales son invalidos.
+        *
+        * @return string Error.
+        */
         public function client_secret_invalid_message() {
-            echo '<div class="error"><p><strong>' . __( 'Xpay Desactivado', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'El Public Key o Secret Key son invalidos. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
+            echo '<div class="error"><p><strong>' . __( 'Xpay Desactivado', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'El e-mail o la clave son invalidos. %s', 'woocommerce-xpay' ), '<a href="' . $this->admin_url() . '">' . __( 'Click aqui para configurarlo!', 'woocommerce-xpay' ) . '</a>' ) . '</p></div>';
         }
         /**
-            * Error cuando algun directorio no es escribible.
-            *
-            * @return string Error.
-            */
+        * Error cuando algun directorio no es escribible.
+        *
+        * @return string Error.
+        */
         public function directory_nowrite( $name ) {
             echo sprintf( '<div class="error"><p><strong>' . __( 'El directorio <code>/wp-content/plugins/woocommerce-xpay/%s</code> del modulo Xpay no es escribible, cambielo a chmod 777.', 'woocommerce-xpay' ) . '</strong></p></div>', $name );
         }
@@ -868,14 +807,13 @@ if ( ! class_exists( 'WC_Xpay_Gateway' ) ) :
         public function directory_includes_nowrite() {
             return $this->directory_nowrite( 'includes' );
         }
-
         /**
             * Error de moneda no soportada
             *
             * @return string
             */
         public function currency_not_supported_message() {
-            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Unsupported currency <code>%s</code>. Please activate a conversion rate in the module configuration or use one of the following currencies: ARS, VES, COP.', 'woocommerce-xpay' ), get_woocommerce_currency() ) . '</p></div>';
+            echo '<div class="error"><p><strong>' . __( 'Xpay', 'woocommerce-xpay' ) . '</strong>: ' . sprintf( __( 'Tu moneda no es soportada <code>%s</code>. Active una tasa de conversión en la configuración del módulo o use una de las siguientes monedas: ARS, VES, COP.', 'woocommerce-xpay' ), get_woocommerce_currency() ) . '</p></div>';
         }
     }
 endif;

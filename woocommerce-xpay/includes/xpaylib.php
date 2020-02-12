@@ -78,13 +78,13 @@ class XpayLib
     public function isApiKeyValid() {
         static $token = false;
         $auth = array('email' => $this->apiKey, 'password' => $this->apiSecret);
-        $post = json_encode($auth);
-        $phash = md5($post);
-        if (!$token) {
-            $f = @file_get_contents(dirname(__FILE__).'/.cache-token.php');
-            if (!empty($f)) {
-                $f = json_decode(str_replace('<'.'?php exit; ?'.'>', '', $f), true);
-                if (isset($f['hash']) && $f['hash'] == $phash && time() - $f['time'] < 3600) {
+        $post = json_encode( $auth );
+        $phash = md5( $post );
+        if ( !$token ) {
+            $f = @file_get_contents( dirname(__FILE__) . '/.cache-token.php' );
+            if ( !empty( $f ) ) {
+                $f = json_decode( str_replace('<'.'?php exit; ?'.'>', '', $f), true );
+                if ( isset($f['hash']) && $f['hash'] == $phash && time() - $f['time'] < 3600 ) {
                     $token = $f;
                     return $f;
                 }
@@ -95,7 +95,7 @@ class XpayLib
         $ch = curl_init();
         $header = array();
 
-        $header[] = 'Content-length: ' . strlen($post);
+        $header[] = 'Content-length: ' . strlen( $post );
         $header[] = 'Content-type: application/json';
         $header[] = 'cache-control: no-cache';
         curl_setopt($ch, CURLOPT_URL, $this->getUrl() . "api/v1/auth/login/");
@@ -153,10 +153,10 @@ class XpayLib
             'exchange_id' => $exchange,
             'callback' => $url_notification
         );
-        $post = json_encode($arr_order);
+        $post = json_encode( $arr_order );
 
         $header[] = 'Authorization: Token ' . $token;
-        $header[] = 'Content-length: ' . strlen($post);
+        $header[] = 'Content-length: ' . strlen( $post );
         $header[] = 'Content-type: application/json';
         curl_setopt($ch, CURLOPT_URL, $this->getUrl() . 'api/v1/transactions/create/');
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
@@ -176,7 +176,7 @@ class XpayLib
         }
         return $result;
     }
-    public function getTransaction($id) {
+    public function getTransaction( $id ) {
         $token = $this->isApiKeyValid();
         if (!$token) {
             return false;
@@ -202,7 +202,7 @@ class XpayLib
         }
         return $result;
     }
-    public function cancelTransaction($id) {
+    public function cancelTransaction( $id ) {
         $token = $this->isApiKeyValid();
         if (!$token) {
             return false;
@@ -255,7 +255,7 @@ class XpayLib
         }
         return $result['available_currencies'];
     }
-    static public function getCountries() {
+    static public function getCountries( ) {
         $ch = curl_init();
         $header = array();
         $header[] = 'Content-type: application/json';
