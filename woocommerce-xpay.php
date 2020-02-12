@@ -6,7 +6,7 @@
  * Author: Kijam
  * Author URI: http://kijam.com/
  * Version: 1.0.1
- * License: GPLv2
+ * License: MIT
  * Text Domain: woocommerce-xpay
  * Domain Path: /languages/
  */
