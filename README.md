@@ -3,7 +3,7 @@ Xpay Checkout for Woocommerce
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/bitpay/bitpay-checkout-for-woocommerce.svg?branch=master)](https://travis-ci.org/bitpay/bitpay-checkout-for-woocommerce)
+[![Build Status](https://travis-ci.org/xpay-cash/xpay-checkout-for-woocommerce.svg?branch=master)](https://travis-ci.org/xpay-cash/xpay-checkout-for-woocommerce)
 
 This plugin allows stores using the WooCommerce shopping cart system to accept cryptocurrency payments via the Xpay gateway. It only takes a few minutes to configure.
 
