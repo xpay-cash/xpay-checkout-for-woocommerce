@@ -453,10 +453,10 @@ if ( !class_exists( 'WC_Xpay_Gateway' ) ):
 				$html .= 'Debes enviar la cantidad exacta de <b>' . $payment[ 'amount_to_paid' ] . ' ' . $payment[ 'currency_to_paid' ] . '</b> a la billetera:<br /><center><a href="' . $payment[ 'url' ] . '" target="_blank"><img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' . urlencode( $payment[ 'qr' ] ) . '&choe=UTF-8" /><br />' . $payment[ 'wallet' ] . '</a><br />En menos de <b id="xpay-timer" data-seconds="' . (int) ( $payment[ 'waiting_time' ] - ( time() - $payment[ 'gen_transaction_time' ] ) ) . '"></b> minutos, de lo contrario esta transaccion sera cancelada.</center>';
 				$html .= '<div class="row xpay-form"><br class="clearfix" /></div>';
 			} else if ( $payment && $payment[ 'status' ] == 'approved' ) {
-				echo '<script>window.location.href="' . $order->get_checkout_order_received_url() . '";</script>';
+				echo '<script>window.location.href="' . html_entity_decode( $order->get_checkout_order_received_url() )  . '";</script>';
 				exit;
 			} else if ( $payment && isset( $payment[ 'status' ] ) ) {
-				echo '<script>window.location.href="' . $order->get_cancel_order_url() . '";</script>';
+				echo '<script>window.location.href="' . html_entity_decode( $order->get_cancel_order_url() ) . '";</script>';
 				exit;
 			} else {
 				$html = '<p>' . __( 'Hubo un problema al comunicarse con Xpay. Inténtalo de nuevo más tarde ...', 'woocommerce-xpay' ) . '</p>';
