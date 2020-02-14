@@ -449,15 +449,7 @@ if ( !class_exists( 'WC_Xpay_Gateway' ) ):
 				self::set_metadata( $order_id, 'string_fiat_amount_to_commerce', $payment[ 'string_fiat_amount_to_commerce' ] );
 				self::set_metadata( $order_id, 'id_transaction', $payment[ 'id' ] );
 				self::set_metadata( $order_id, 'status', $payment[ 'status' ] );
-				$html = '<p>' . __( 'Gracias por su pedido, complete la siguiente información para procesar su pedido con', 'woocommerce-xpay' ) . ' <a href="https://xpay.cash/" target="_blank">© Xpay</a></p>';
-				$html .= 'Debes enviar la cantidad exacta de <b>' . $payment[ 'amount_to_paid' ] . ' ' . $payment[ 'currency_to_paid' ] . '</b> a la billetera:<br /><center><a href="' . $payment[ 'url' ] . '" target="_blank"><img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' . urlencode( $payment[ 'qr' ] ) . '&choe=UTF-8" /><br />' . $payment[ 'wallet' ] . '</a><br />En menos de <b id="xpay-timer" data-seconds="' . (int) ( $payment[ 'waiting_time' ] - ( time() - $payment[ 'gen_transaction_time' ] ) ) . '"></b> minutos, de lo contrario esta transaccion sera cancelada.</center>';
-				$html .= '<div class="row xpay-form"><br class="clearfix" /></div>';
-			} else if ( $payment && $payment[ 'status' ] == 'approved' ) {
-				echo '<script>window.location.href="' . html_entity_decode( $order->get_checkout_order_received_url() )  . '";</script>';
-				exit;
-			} else if ( $payment && isset( $payment[ 'status' ] ) ) {
-				echo '<script>window.location.href="' . html_entity_decode( $order->get_cancel_order_url() ) . '";</script>';
-				exit;
+				wp_redirect( html_entity_decode( $order->get_checkout_order_received_url() ) );
 			} else {
 				$html = '<p>' . __( 'Hubo un problema al comunicarse con Xpay. Inténtalo de nuevo más tarde ...', 'woocommerce-xpay' ) . '</p>';
 			}
@@ -522,7 +514,22 @@ if ( !class_exists( 'WC_Xpay_Gateway' ) ):
 			$order_id       = $old_wc ? $order->id : $order->get_id();
 			$transaction_id = $this->get_metadata( $order_id, 'id_transaction' );
 			if ( $transaction_id ) {
-				return '<center><b>' . __( 'Gracias. Tu orden ha sido recibida.', 'woocommerce-xpay' ) . '<br />' . __( 'Su ID de transacción es', 'woocommerce-xpay' ) . ': ' . $transaction_id . '</b></center>';
+				$api    = new XpayLib( self::get_client_secret() );
+				if ( !$api->isApiKeyValid() ) {
+					return '';
+				}
+				$order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
+				$payment = $this->checkIpn( $order_id );
+				if ( $payment && $payment[ 'status' ] == 'sending' ) {
+					$html = '<p>' . __( 'Gracias por su pedido, complete la siguiente información para procesar su pedido con', 'woocommerce-xpay' ) . ' <a href="https://xpay.cash/" target="_blank">© Xpay</a></p>';
+					$html .= 'Debes enviar la cantidad exacta de <b>' . $payment[ 'amount_to_paid' ] . ' ' . $payment[ 'currency_to_paid' ] . '</b> a la billetera:<br /><center><a href="' . $payment[ 'url' ] . '" target="_blank"><img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' . urlencode( $payment[ 'qr' ] ) . '&choe=UTF-8" /><br />' . $payment[ 'wallet' ] . '</a><br />En menos de <b id="xpay-timer" data-seconds="' . (int) ( $payment[ 'waiting_time' ] - ( time() - $payment[ 'gen_transaction_time' ] ) ) . '"></b> minutos, de lo contrario esta transaccion sera cancelada.</center>';
+					$html .= '<div class="row xpay-form"><br class="clearfix" /></div>';
+					return $html;
+				} else if ( $payment && $payment[ 'status' ] == 'approved' ) {
+					return '<center><b>' . __( 'Gracias. Tu pago fue aceptado.', 'woocommerce-xpay' ) . '<br />' . __( 'Su ID de transacción es', 'woocommerce-xpay' ) . ': ' . $transaction_id . '</b></center>';
+				} else {
+					return '<p>' . __( 'El tiempo expiro o no pudo ser procesado.', 'woocommerce-xpay' ) . '</p>';
+				}
 			}
 			return $var;
 		}
