@@ -3,7 +3,7 @@ Contributors: Kijam, styp152
 Tags: bitcoin, bitcoin cash, payments, xpay, cryptocurrency, payment gateway
 Requires at least: 3.9
 Tested up to: 4.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: MIT License (MIT)
 License URI: https://github.com/xpay-cash/xpay-checkout-for-woocommerce/blob/master/LICENSE
 
