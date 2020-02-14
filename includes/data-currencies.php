@@ -9,19 +9,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 return array(
-    'VE'          => array(
-        'NAME' => 'Venezuela',
-        'CURRENCY' => 'VES',
-        'ISO' => 'VE',
-    ),
-    'CO'          => array(
-        'NAME' => 'Colombia',
-        'CURRENCY' => 'COP',
-        'ISO' => 'CO',
-    ),
-    'AR'          => array(
-        'NAME' => 'Argentina',
-        'CURRENCY' => 'ARS',
-        'ISO' => 'AR',
-    ),
+	'VE'          => array(
+		'NAME' => 'Venezuela',
+		'CURRENCY' => 'VES',
+		'ISO' => 'VE',
+	),
+	'CO'          => array(
+		'NAME' => 'Colombia',
+		'CURRENCY' => 'COP',
+		'ISO' => 'CO',
+	),
+	'AR'          => array(
+		'NAME' => 'Argentina',
+		'CURRENCY' => 'ARS',
+		'ISO' => 'AR',
+	),
 );
