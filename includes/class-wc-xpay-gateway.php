@@ -189,6 +189,9 @@ if ( !class_exists( 'WC_Xpay_Gateway' ) ):
 			}
 			echo '</ul>';
 		}
+		private function getcookie( $name ) {
+			return isset( $_COOKIE[ $name ] ) ? $_COOKIE[ $name ] : false;
+		}
 		public function get_convertion_rate( $currency_org, $currency_dst )
 		{
 			if ( $currency_org == $currency_dst || $this->convertion_option == 'off' ) {
