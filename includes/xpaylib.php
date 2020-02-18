@@ -204,7 +204,7 @@ class XpayLib
 		$header    = array( );
 		$header[ ] = "Authorization: Token " . $token;
 		$header[ ] = 'Content-type: application/json';
-		$amount    = (float) round( $amount, 2 );
+		$amount    = number_format($amount, 2, '.', '');
 		$currency  = strtoupper( $currency );
 		$ch        = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $this->getUrl() . "api/v1/transactions/available/currencies/$amount/$currency/" );
