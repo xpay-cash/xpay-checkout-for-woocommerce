@@ -50,22 +50,22 @@ return array(
 		'options'       => $op_countries,
 	),
 	'convertion_option' => array(
-		'title' => sprintf( __( 'Activar conversion de %1$s a %2$s', 'woocommerce-mercadoenvios' ), $currency_org, $currency_dst ),
+		'title' => sprintf( __( 'Activar conversión de %1$s a %2$s', 'woocommerce-mercadoenvios' ), $currency_org, $currency_dst ),
 		'type' => 'select',
 		'label' => __( 'Activa el plugin convirtiendo los montos a la moneda de Xpay', 'woocommerce-mercadoenvios' ),
 		'default' => '',
 		'options'         => array(
 			'off'    => __( 'Desactivar Modulo', 'woocommerce-mercadoenvios' ),
-			'live-rates' => __( 'Usar la tasa de conversion de live-rates.com (No aplica a Bolivares)', 'woocommerce-mercadoenvios' ),
-			'dicom' => __( 'Usar la tasa de conversion oficial (Solo aplica a USD/EUR <-> Bolivares)', 'woocommerce-mercadoenvios' ),
-			'promedio' => __( 'Usar la tasa de conversion promedio (Solo aplica a USD/EUR <-> Bolivares)', 'woocommerce-mercadoenvios' ),
-			'custom' => __( 'Usar una tasa de conversion Manual', 'woocommerce-mercadoenvios' ),
+			'live-rates' => __( 'Usar la tasa de conversión de live-rates.com (No aplica a Bolivares)', 'woocommerce-mercadoenvios' ),
+			'dicom' => __( 'Usar la tasa de conversión oficial (Solo aplica a USD/EUR <-> Bolivares)', 'woocommerce-mercadoenvios' ),
+			'promedio' => __( 'Usar la tasa de conversión promedio (Solo aplica a USD/EUR <-> Bolivares)', 'woocommerce-mercadoenvios' ),
+			'custom' => __( 'Usar una tasa de conversión Manual', 'woocommerce-mercadoenvios' ),
 		),
 	),
 	'convertion_rate' => array(
 		'title' => sprintf( __( 'Convertir usando Tasa Manual de %1$s a %2$s', 'woocommerce-mercadoenvios' ), $currency_org, $currency_dst ),
 		'type' => 'text',
-		'label' => __( 'Utilizar una tasa de conversion manual', 'woocommerce-mercadoenvios' ),
+		'label' => __( 'Utilizar una tasa de conversión manual', 'woocommerce-mercadoenvios' ),
 		'default' => '',
 	),
 	'debug' => array(
