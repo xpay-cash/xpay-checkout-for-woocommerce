@@ -5,7 +5,7 @@ var xpaytimer = setInterval(function(){
 	var t = $('#xpay-timer');
 	if (t.length > 0) {
 		++xpaytoreload;
-		if (xpaytoreload > 120) {
+		if (xpaytoreload > 30) {
 			location.reload(true);
 			clearInterval(xpaytimer);
 			return;
