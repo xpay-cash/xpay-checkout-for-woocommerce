@@ -5,7 +5,7 @@
  * Description: Xpay plugin for WooCommerce
  * Author: Kijam
  * Author URI: http://kijam.com/
- * Version: 1.0.4
+ * Version: 1.0.5
  * License: MIT
  * Text Domain: woocommerce-xpay
  * Domain Path: /languages/
@@ -26,7 +26,7 @@ if ( !class_exists( 'WC_Xpay' ) ): /**
 		 *
 		 * @var string
 		 */
-		const VERSION = '1.0.4';
+		const VERSION = '1.0.5';
 
 		/**
 		 * Instance of this class.
